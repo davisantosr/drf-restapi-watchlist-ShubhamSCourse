@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view 
+from rest_framework import status
 
 from watchlist_app.models import Movie
 from watchlist_app.api.serializers import MovieSerializer
@@ -22,9 +23,12 @@ def movie_list(request):
 @api_view(['GET','PUT', 'DELETE', 'PATCH'])
 def movie_details(request, pk):
   if request.method == 'GET':
-    movie = Movie.objects.get(pk=pk)
+    try:
+      movie = Movie.objects.get(pk=pk)
+    except Movie.DoesNotExist:
+      return Response({'error': 'Movie not found'}, status=status.HTTP_404_NOT_FOUND)
     serializer = MovieSerializer(movie)  
-    return Response(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
   if request.method == 'PUT':
     movie = Movie.objects.get(pk=pk)
@@ -38,4 +42,4 @@ def movie_details(request, pk):
   if request.method == 'DELETE':
     movie = Movie.objects.get(pk=pk)
     movie.delete()
-    return Response({'deleted'})    
+    return Response(status=status.HTTP_204_NO_CONTENT)    
